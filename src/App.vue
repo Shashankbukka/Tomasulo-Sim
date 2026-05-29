@@ -1,13 +1,21 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { state, initiate, loadTheFile, runOneStep, runMultStep, strMem } from './simulator';
+import { examples } from './examples';
 
 const multiStepCount = ref(3);
 const memoryInput = ref({ addr: 0, value: 0 });
+const selectedExample = ref('');
 
 onMounted(() => {
   initiate();
 });
+
+const loadExample = () => {
+  if (selectedExample.value && examples[selectedExample.value]) {
+    loadTheFile(examples[selectedExample.value]);
+  }
+};
 
 const onFileSelected = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0];
@@ -16,6 +24,7 @@ const onFileSelected = (event: Event) => {
   reader.onload = (e) => {
     const text = e.target?.result as string;
     loadTheFile(text);
+    selectedExample.value = ''; // Reset dropdown
   };
   reader.readAsText(file);
 };
@@ -36,8 +45,15 @@ const handleSetMemory = () => {
     </div>
     
     <div class="header-controls">
-      <button @click="triggerFileInput">
-        <i class="fa-solid fa-folder-open"></i> Load Program
+      <select v-model="selectedExample" @change="loadExample" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px 12px; border-radius: 6px; outline: none; cursor: pointer;">
+        <option value="" disabled>Load Example...</option>
+        <option value="basic_math">01: Basic Math</option>
+        <option value="data_hazards">02: Data Hazards</option>
+        <option value="structural_hazards">03: Structural Hazards</option>
+      </select>
+
+      <button @click="triggerFileInput" title="Upload your own file">
+        <i class="fa-solid fa-upload"></i> Upload
         <input id="fileUpload" type="file" style="display: none" @change="onFileSelected" />
       </button>
 
